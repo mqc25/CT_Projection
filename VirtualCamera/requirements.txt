@@ -1,0 +1,6 @@
+nibabel
+h5py
+scipy
+PIL
+numba
+numpy
