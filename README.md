@@ -1,12 +1,12 @@
-#CT_Projection
+# CT_Projection
 -- Minh Cao
 
-##Directory structure
+## Directory structure
 - VirtualCamera: contain all the code that do CT projection
 - temp_data (generated after first run of a CT image): hold cache of the necessary arrays to calculation for that particular image
 - main.py: example of using the code
 
-##Usage
+## Usage
 ### Projecting 3D CT to 2D pixel coordinate
 - Import the class
 ```python
