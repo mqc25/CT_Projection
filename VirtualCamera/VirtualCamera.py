@@ -18,6 +18,7 @@ class VirtualCamera:
         self.transformation_matrix = None
         self.reverse_matrix = None
         self.img_data = None
+        self.pixel_coord = None
 
         self.img_shape = None
         self.min = None
@@ -30,7 +31,7 @@ class VirtualCamera:
 
         # print('1', self.img_data[128][128][88])
         # print('min', self.min, 'max', self.max, 'range', self.range, 'mean', np.nanmean(self.img_data))
-        self.img_data, self.voxel_array = self.process_img_data()
+        # self.img_data, self.voxel_array = self.process_img_data()
         # print('2', self.img_data[128][128][88])
         # print('min', np.min(self.img_data), 'max', np.max(self.max), 'range', self.range, 'mean', np.nanmean(self.img_data))
         # im = Image.fromarray(self.img_data[128])
@@ -67,6 +68,27 @@ class VirtualCamera:
         if type(self.max) is list:
             self.max = self.max[0]
         self.range = self.max - self.min
+        self.img_data, self.voxel_array = self.process_img_data()
+
+    def import_hull(self, hull_path):
+        self.img = nib.load(hull_path)
+        self.transformation_matrix = self.img.affine
+
+        self.reverse_matrix = np.linalg.inv(self.transformation_matrix)
+        self.img_data = self.img.get_fdata(dtype=np.float32)
+
+        self.img_shape = np.array(self.img_data.shape)
+        self.min = np.nanmin(self.img_data)
+        if type(self.min) is list:
+            self.min = self.min[0]
+        self.max = np.nanmax(self.img_data)
+        if type(self.max) is list:
+            self.max = self.max[0]
+        self.range = self.max - self.min
+        self.img_data, self.voxel_array = self.process_img_data()
+
+    def import_pixel_coord(self, pixel_coord):
+        self.pixel_coord = pixel_coord
 
     def process_img_data(self):
         if os.path.exists('./temp_data/preprocessing.h5'):
@@ -82,10 +104,10 @@ class VirtualCamera:
         # img_data = np.full(self.img_shape, self.min)
         img_data = np.nan_to_num(self.img_data, nan=self.min)
         # img_data -= self.min
-
+        print(self.img_shape)
         voxel_shape = [self.img_shape[0], self.img_shape[1], self.img_shape[2], 4]
         print(voxel_shape)
-        voxel_array = np.full(voxel_shape, 1.0)
+        voxel_array = np.full(voxel_shape, 1)
 
         for i in range(self.img_shape[0]):
             for j in range(self.img_shape[1]):
@@ -200,6 +222,13 @@ class VirtualCamera:
         world = self.convert_voxel_to_world()
         self.panel_array = self.convert_world_to_panel(world)
         print('Process img')
+
+    def project_2D_to_3D(self):
+        self.calculate_camera_matrix()
+        world = self.convert_voxel_to_world()
+        pixel = np.array([[640,512], [650, 512]])
+        non_zero = get_non_zero_coord(self.img_data, self.voxel_array, world)
+        print(parallel_2D_to_3D(pixel,np.array([self.distance/2.0, 0, 0]), non_zero, self.panel_width, self.panel_height, self.distance, self.scale))
 
     def show_image(self):
         self.process_panel_to_img(self.panel_array)

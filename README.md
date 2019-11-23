@@ -16,7 +16,7 @@ from VirtualCamera.VirtualCamera import VirtualCamera
 ```python
 camera = VirtualCamera()
 ```
-- Import CT image
+- Import CT image (if using new CT image, remember to delete temp_data folder)
 ```python
 ct_path = 'path\to\nii\file'
 camera.import_CT(ct_path)
@@ -41,6 +41,14 @@ camera.add_transformation_matrix(rot90x)
 - do projection
 ```python
 camera.project_3D_to_2D()
+```
+- get all pixel coordinate
+```python
+pixels = camera.panel_array
+```
+- get only pixel coordinate with value > 0
+```python
+pixels = camera.get_above_zero_pixel()
 ```
 - show projection image
 ```python
